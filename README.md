@@ -1,7 +1,9 @@
 Command line instructions
 
 Git global setup
+
 git config --global user.name "Lei"
+
 git config --global user.email "lei.zhang@kiwiplan.co.nz"
 
 Create a new repository
