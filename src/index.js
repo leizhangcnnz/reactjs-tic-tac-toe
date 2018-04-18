@@ -43,6 +43,17 @@ class Board extends React.Component {
   }
 }
 
+class Button extends React.Component {
+  render() {
+    return (<button 
+      onClick={() => this.props.onClick()} 
+      class={this.props.className}
+    >
+    {this.props.value}
+    </button>);
+  }
+}
+
 class Game extends React.Component {
   constructor(props) {
     super(props);
@@ -99,7 +110,7 @@ class Game extends React.Component {
       const desc = step ? 'Go to step #' + step + calculateLocation(position) : 'Go to game start';
       return (
         <li key={step}>
-          <button onClick={() => this.jumpTo(step)}>{desc}</button>
+          <Button value={desc} onClick={() => this.jumpTo(step)} className={step === this.state.stepNumber ? "bold-button" : ""} />
         </li>
       );
     });
