@@ -2,6 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
 
+const PLAYER_X = 'X';
+const PLAYER_O = 'O';
+
 function Square (props) {
   return (
     <button className="square" onClick={props.onClick}>
@@ -43,15 +46,13 @@ class Board extends React.Component {
   }
 }
 
-class Button extends React.Component {
-  render() {
-    return (<button 
-      onClick={() => this.props.onClick()} 
-      class={this.props.className}
-    >
-    {this.props.value}
-    </button>);
-  }
+function Button(props) {
+  return (<button 
+    onClick={() => props.onClick()} 
+    class={props.className}
+  >
+  {props.value}
+  </button>);
 }
 
 class Game extends React.Component {
@@ -61,6 +62,7 @@ class Game extends React.Component {
       history: [{
         squares: Array(9).fill(null),
         position: -1,
+        player: null,
       }],
       stepNumber: 0,
       xIsNext: true,
@@ -71,14 +73,16 @@ class Game extends React.Component {
     const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length -1];
     const squares = current.squares.slice();
+    const player = this.state.xIsNext ? PLAYER_X : PLAYER_O;
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
+    squares[i] = player;
     this.setState({
       history: history.concat([{
         squares: squares,
         position: i,
+        player: player
       }]),
       stepNumber: history.length,
       xIsNext: !this.state.xIsNext,
@@ -106,8 +110,7 @@ class Game extends React.Component {
     }
 
     const moves = history.map((current, step) => {
-      const position = current.position;
-      const desc = step ? 'Go to step #' + step + calculateLocation(position) : 'Go to game start';
+      const desc = step ? calculateLocation(current) : 'Go to game start';
       return (
         <li key={step}>
           <Button value={desc} onClick={() => this.jumpTo(step)} className={step === this.state.stepNumber ? "bold-button" : ""} />
@@ -159,8 +162,10 @@ function calculateWinner(squares) {
   return null;
 }
 
-function calculateLocation(position) {
+function calculateLocation(current) {
+  const position = current.position;
+  const player = current.player;
   const x = (Math.floor(position / 3) + 1).toFixed(0);
   const y = (position % 3 + 1).toFixed(0);
-  return '(' + x + ', ' + y + ')';
+  return player + ' chose (' + x + ', ' + y + ')';
 }
