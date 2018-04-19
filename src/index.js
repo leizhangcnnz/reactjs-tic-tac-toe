@@ -60,25 +60,40 @@ class Game extends React.Component {
       }],
       stepNumber: 0,
       xIsNext: true,
+      isAsc: true,
     };
   }
 
   handleClick(i) {
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length -1];
+    const reset = this.state.history[0];
+    const history = this.state.isAsc ? this.state.history.slice(0, this.state.stepNumber + 1) : this.state.history.slice(-1 * this.state.stepNumber);
+    this.state.isAsc || this.state.stepNumber === 0 ? history :history.unshift(reset);
+    const currentIndex = this.state.isAsc || this.state.stepNumber === 0 ? this.state.stepNumber : history.length - this.state.stepNumber;
+    const current = history[currentIndex];
     const squares = current.squares.slice();
     const player = this.state.xIsNext ? PLAYER_X : PLAYER_O;
     if (calculateWinner(squares) || squares[i]) {
       return;
     }
     squares[i] = player;
-    this.setState({
-      history: history.concat([{
+
+    if (this.state.isAsc) {
+      history.push({
         squares: squares,
         position: i,
-        player: player
-      }]),
-      stepNumber: history.length,
+        player: player,
+      });
+    }
+    else {
+      history.splice(1, 0, {
+        squares: squares,
+        position: i,
+        player: player,
+      });
+    }
+    this.setState({
+      history: history,
+      stepNumber: this.state.isAsc ? history.length - 1 : this.state.stepNumber + 1,
       xIsNext: !this.state.xIsNext,
     });
   }
@@ -90,11 +105,30 @@ class Game extends React.Component {
     });
   }
 
+  reverseHistoryMoves() {
+    if (this.state.history && this.state.history.length > 1) {
+      const history = this.state.history.slice(1);
+      const reset = this.state.history[0];
+      history.reverse();
+      history.unshift(reset)
+      this.setState({
+        history: history,
+        isAsc: !this.state.isAsc,
+      });
+    }
+    else {
+      this.setState({
+        isAsc: !this.state.isAsc,
+      });
+      return;
+    }
+  }
+
   render() {
     const history = this.state.history;
-    const current = history[this.state.stepNumber];
+    const current = history[this.state.stepNumber === 0 ? 0 : this.state.isAsc ? this.state.stepNumber : this.state.history.length - this.state.stepNumber];
 
-    const winner = calculateWinner(current.squares);
+    const winner = current ? calculateWinner(current.squares) : null;
     let status;
     if (winner) {
       status = 'Winner: ' + winner;
@@ -105,12 +139,15 @@ class Game extends React.Component {
 
     const moves = history.map((current, step) => {
       const desc = step ? calculateLocation(current) : 'Go to game start';
+      const jumpTo = step === 0? 0 : this.state.isAsc ? step : this.state.history.length - step;
       return (
         <li key={step}>
-          <Button value={desc} onClick={() => this.jumpTo(step)} className={step === this.state.stepNumber ? "bold-button" : ""} />
+          <Button value={desc} onClick={() => this.jumpTo(jumpTo)} className={jumpTo === this.state.stepNumber ? "bold-button" : ""} />
         </li>
       );
     });
+
+    const sortButton = <Button value="Reverse" onClick={() => this.reverseHistoryMoves()} />
 
     return (
       <div className="game">
@@ -122,6 +159,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
+          <div>{sortButton}</div>
           <ol>{moves}</ol>
         </div>
       </div>
