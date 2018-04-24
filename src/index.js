@@ -7,8 +7,10 @@ const PLAYER_O = 'O';
 
 function Square (props) {
   return (
-    <button className="square" onClick={props.onClick}>
-      {props.value}
+    <button 
+      className={props.className} 
+      onClick={props.onClick}>
+        {props.value}
     </button>
   );
 }
@@ -17,6 +19,7 @@ class Board extends React.Component {
   renderSquare(i) {
     return (
       <Square 
+        className={this.props.winnedIndexes && this.props.winnedIndexes.includes(i) ? "highlight-square" : "square"} 
         value={this.props.squares[i]} 
         onClick={() => this.props.onClick(i)} 
       />
@@ -67,7 +70,7 @@ class Game extends React.Component {
   handleClick(i) {
     const reset = this.state.history[0];
     const history = this.state.isAsc ? this.state.history.slice(0, this.state.stepNumber + 1) : this.state.history.slice(-1 * this.state.stepNumber);
-    this.state.isAsc || this.state.stepNumber === 0 ? history :history.unshift(reset);
+    this.state.isAsc || this.state.stepNumber === 0 ? history : history.unshift(reset);
     const currentIndex = this.state.isAsc || this.state.stepNumber === 0 ? this.state.stepNumber : history.length - this.state.stepNumber;
     const current = history[currentIndex];
     const squares = current.squares.slice();
@@ -149,11 +152,14 @@ class Game extends React.Component {
 
     const sortButton = <Button value="Reverse" onClick={() => this.reverseHistoryMoves()} />
 
+    const winnedIndexes = calculateWinedIndex(current.squares);
+
     return (
       <div className="game">
         <div className="game-board">
           <Board 
-            squares= {current.squares} 
+            winnedIndexes={winnedIndexes}
+            squares={current.squares} 
             onClick={(i) => this.handleClick(i)} 
           />
         </div>
@@ -189,6 +195,26 @@ function calculateWinner(squares) {
     const [a, b, c] = possibles[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
+    }
+  }
+  return null;
+}
+
+function calculateWinedIndex(squares) {
+  const possibles = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < possibles.length; i++) {
+    const [a, b, c] = possibles[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return possibles[i];
     }
   }
   return null;
